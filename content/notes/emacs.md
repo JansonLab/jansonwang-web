@@ -9,6 +9,31 @@ draft: false
 
 查看某个快捷键的功能：按下 `C-h k` 然后输入需要查询的 `快捷键` 。
 
+sdf
+
+{{< figure src="/ox-hugo/The-Android-software-stack.png" >}}
+
+
+## 图片类 {#图片类}
+
+-   插入图片：
+    ```emacs-lisp
+    [[/home/ubuntu/Pictures/The-Android-software-stack.png]]
+    ```
+
+<!--listend-->
+
+-   怎么显示图片： `C-c C-x C-v`
+
+<!--listend-->
+
+-   控制图片大小：
+    ```emacs-lisp
+    # 将在 Emacs 中显示为 400 像素宽
+    #+ATTR_ORG: :width 400
+    [[/home/ubuntu/Pictures/The-Android-software-stack.png]]
+    ```
+
 
 ## 文件管理 {#文件管理}
 
@@ -45,7 +70,6 @@ draft: false
         ```emacs-lisp
         CompileFlags:
           Add: [-std=c++17]
-
         ```
 
 
