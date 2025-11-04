@@ -88,4 +88,35 @@ org-roam/
 > 作用：自动同步数据库；提供快速键绑定；设置笔记存放目录。
 
 
-### 创建新笔记 {#创建新笔记}
+## Org Roam 的底层命令 {#org-roam-的底层命令}
+
+Org-roam v2 使用一个 SQLite 数据库（默认位于 ~/.emacs.d/org-roam.db）来存储：
+
+-   每篇笔记（node）的 ID、标题、文件路径
+-   反向链接（backlinks）
+-   标签（tags）、别名（aliases）等信息
+
+执行以下命令:
+
+```emacs-lisp
+M-x org-roam-db-sync
+```
+
+它会重新扫描你的所有 org 文件，然后把这些信息写入数据库。
+
+
+### 数据库查询 {#数据库查询}
+
+org-roam-db-query 是一个底层 API，用于直接对这个数据库执行查询。它使用 emacsql 语法（类似 SQL，但用 Lisp 风格书写）。
+
+> [emacsql语法]({{< relref "emacsql语法.md" >}})
+
+使用以下命令查询数据库中是否有指定的ID
+
+```emacs-lisp
+(org-roam-db-query [:select [id title file] :from nodes :where (= id "8502ac2f-cb07-41b0-9ed0-14971b1d0fc7")])
+```
+
+|                                      |               |                                             |
+|--------------------------------------|---------------|---------------------------------------------|
+| 8502ac2f-cb07-41b0-9ed0-14971b1d0fc7 | mutable修饰成员变量 | /home/ubuntu/personalWiki/mutable修饰成员变量.org |
