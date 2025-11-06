@@ -5,6 +5,8 @@ date: 2025-11-04T20:05:00+08:00
 draft: false
 ---
 
+[ANSI Common Lisp 中文版](https://acl.readthedocs.io/en/latest/index.html)
+
 写一个函数，输入一个数 n ，返回把 n 与传入参数 (argument)相加的函数。
 
 ```lisp

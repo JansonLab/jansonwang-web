@@ -1134,11 +1134,378 @@ cout << nounitbuf;  // 回到正常的缓冲方式
 
     为了防止潜在的资源泄漏问题，我们可以使用类来管理文件流，通过在构造函数中创建文件流对象，在析构函数中自动关闭，能减少这类资源泄漏问题。
 
+<!--list-separator-->
 
-#### 8.2.1 节练习 {#8-dot-2-dot-1-节练习}
+-  8.2.1 节练习
 
-练习 8.4
+    练习 8.4
+
+    ````cpp
+    #include <fstream>
+    #include <iostream>
+    #include <string>
+    #include <vector>
+
+    using namespace std;
+
+    int main(){
+      ifstream ifile("input.txt");
+      vector<string> vec;
+      if(ifile.is_open()){
+        string line;
+        while(getline(ifile,line)){
+          vec.push_back(line);
+        }
+      }
+
+      for(auto& x: vec){
+        cout << x << endl;
+      }
+      return 0;
+    }
+
+    ````
+
+    练习 8.5
+
+    ````cpp
+    #include <fstream>
+    #include <iostream>
+    #include <string>
+    #include <vector>
+
+    using namespace std;
+
+    int main(){
+      ifstream ifile("input.txt");
+      vector<string> vec;
+      if(ifile.is_open()){
+        string line;
+        while(ifile>> line){
+          vec.push_back(line);
+        }
+      }
+
+      for(auto& x: vec){
+        cout << x << endl;
+      }
+      return 0;
+    }
+    ````
+
+    练习 8.6
+
+    ````cpp
+    #include <fstream>
+    #include <iostream>
+    #include <istream>
+    #include <string>
+
+    struct Sales_data {
+      std::string bookNo;
+      unsigned units_sold = 0;
+      double revenue = 0.0;
+
+      // 成员函数
+      std::string isbn() { return this->bookNo; }
+      Sales_data &combine(const Sales_data &rhs) {
+        units_sold += rhs.units_sold;
+        revenue += rhs.revenue;
+        return *this;
+      }
+    };
+
+    std::istream &read(std::istream &is, Sales_data &sales) {
+      double price = 0.0;
+      if (is >> sales.bookNo >> sales.units_sold >> price) {
+        sales.revenue = sales.units_sold * price;
+      } else {
+        sales = Sales_data();
+      }
+
+      return is;
+    }
+
+    std::ostream &print(std::ostream &os, Sales_data &sales) {
+      os << sales.bookNo << " " << sales.units_sold << " " << sales.revenue
+         << std::endl;
+      return os;
+    }
+
+    Sales_data add(const Sales_data &lhs, const Sales_data &rhs) {
+      Sales_data sum = lhs;
+      sum.combine(rhs);
+      return sum;
+    }
+
+    int main() {
+      Sales_data total;
+      std::string fileName("8.6.txt");
+      std::ifstream ifile(fileName, std::fstream::in);
+      if (!ifile.is_open()) {
+        throw std::runtime_error("无法打开文件: " + fileName);
+      }
+
+      if (read(ifile, total)) {
+        Sales_data trans;
+        while (read(ifile, trans)) {
+          if (total.isbn() == trans.bookNo)
+            total.combine(trans);
+          else {
+            print(std::cout, total);
+            total = trans;
+          }
+        }
+        print(std::cout, total);
+      } else {
+        std::cerr << "No data?!" << std::endl;
+        return -1;
+      }
+      return 0;
+    }
+    ````
+
+    ````text
+    AAA 2 2
+    AAA 2 1
+    BBB 1 2
+    ````
+
+
+#### 8.2.2 文件模式 {#8-dot-2-dot-2-文件模式}
+
+每个流都有一个关联的文件模式，用来指出如何使用该文件。
+
+| 文件模式 | 解释           |
+|------|--------------|
+| in     | 以读方式打开   |
+| out    | 以写方式打开   |
+| app    | 每次写操作均定位到文件末尾 |
+| ate    | 打开文件后立即定位到文件末尾 |
+| trunc  | 截断文件       |
+| binary | 以二进制方式进行IO |
+
+-   文件模式有以下限制：
+    -   out 模式只适用于 ofstream 或 fstream
+    -   in 模式只适用于于 ifstream 或 fstream
+    -   只有设定了 out 才能设定 trunc 模式
+    -   没有设定 trunc 的情况下才能设定 app 模式。
+    -   默认情况下以 out 模式打开会被截断，为了保留以 out 模式打开的文件内容，必须同时指定 app 模式、或者指定 in 模式，即打开文件同时进行读写操作。
+        -   out + app
+        -   out + in
+
+    -   ate 和 binary 模式可以用于任何类型的文件流对象，且可以与其它任何文件模式组合使用。
+
+<!--list-separator-->
+
+-  以 out 模式打开文件会丢弃已有数据
+
+    ````cpp
+    #include <fstream>
+    #include <iostream>
+
+    using namespace std;
+    int main(){
+      // 下面三条语句会导致文件 file1 被截断（清空）
+      ofstream out("file1");
+      ofstream out2("file1",ofstream::out);
+      ofstream out3("file1",ofstream::out | ofstream::trunc);
+
+      // 为了保留文件内容，必须显式指定 app 模式 或 in 模式
+      ofstream app("file2", ofstream::app);
+      ofstream app2("file2", ofstream::out | ofstream::app);
+      ofstream app3("file2", ofstream::out | ofstream::in);
+      return 0;
+    }
+    ````
+
+<!--list-separator-->
+
+-  每次调用 open 时都会确定文件模式
+
+    对于一个给定的流，每次调用 open 函数时都可以改变文件模式。
+
+    ````cpp
+    ofstream out;
+    out.open("file");   // 模式隐含设置为 out： 输出和截断。
+    out.close();        // 关闭 out，以便我们将其用于其他文件。
+    out.open("file",ofstream::app);   // 模式为输出和追加
+    out.close();
+    ````
+
+<!--list-separator-->
+
+-  8.2.2 节练习
+
+    8.7
+
+    ````cpp
+    #include <fstream>
+    #include <iostream>
+    #include <istream>
+    #include <string>
+
+    struct Sales_data {
+      std::string bookNo;
+      unsigned units_sold = 0;
+      double revenue = 0.0;
+
+      // 成员函数
+      std::string isbn() { return this->bookNo; }
+      Sales_data &combine(const Sales_data &rhs) {
+        units_sold += rhs.units_sold;
+        revenue += rhs.revenue;
+        return *this;
+      }
+    };
+
+    std::istream &read(std::istream &is, Sales_data &sales) {
+      double price = 0.0;
+      if (is >> sales.bookNo >> sales.units_sold >> price) {
+        sales.revenue = sales.units_sold * price;
+      } else {
+        sales = Sales_data();
+      }
+
+      return is;
+    }
+
+    std::ostream &print(std::ostream &os, Sales_data &sales) {
+      os << sales.bookNo << " " << sales.units_sold << " " << sales.revenue
+         << std::endl;
+      return os;
+    }
+
+    Sales_data add(const Sales_data &lhs, const Sales_data &rhs) {
+      Sales_data sum = lhs;
+      sum.combine(rhs);
+      return sum;
+    }
+
+    int main() {
+      Sales_data total;
+      std::string infile("8.6.txt");
+      std::string outfile("8.6.output.txt");
+      std::ifstream ifile(infile, std::fstream::in);
+      std::ofstream ofile(outfile,std::fstream::out | std::fstream::app);
+      if (!ifile.is_open()) {
+        throw std::runtime_error("无法打开文件: " + infile);
+      }
+
+      if (!ofile.is_open()) {
+        throw std::runtime_error("无法打开文件: " + outfile);
+      }
+
+
+      if (read(ifile, total)) {
+        Sales_data trans;
+        while (read(ifile, trans)) {
+          if (total.isbn() == trans.bookNo)
+            total.combine(trans);
+          else {
+            print(ofile, total);
+            total = trans;
+          }
+        }
+        print(ofile, total);
+      } else {
+        std::cerr << "No data?!" << std::endl;
+        return -1;
+      }
+      return 0;
+    }
+    ````
+
+    8.8
+    已验证。
+
+
+### 8.3 string 流 {#8-dot-3-string-流}
+
+-   sstream 头文件定义了三个类型来支持内存IO，这些类型可以将 string 作为一个流来使用。sstream 继承自 iostream，支持 iostream 中定义的操作。例如 &lt;&lt; 和 &gt;&gt;。
+    -   istringstream 从 string 读取数据
+    -   ostringstream 向 string 写入数据
+    -   stringstream 即可以读也可以写
+
+-   stringstream 特有的操作:
+
+    | 项目             | 说明                                                       |
+    |----------------|----------------------------------------------------------|
+    | sstream strm;    | strm 是一个未绑定的 stringstream 对象。sstream 是头文件 sstream 中定义的一个类型 |
+    | sstream strm(s); | strm 是一个 sstream 对象，保存 string s 的一个拷贝。此构造函数是 explicit |
+    | strm.str();      | 返回 strm 所保存的 string 的拷贝                           |
+    | strm.str(s);     | 将 string s 拷贝到 strm 中。返回 void                      |
+
+
+#### 8.3.1 使用 istringstream {#8-dot-3-dot-1-使用-istringstream}
+
+使用场景：当我们需要对整行文本进行处理，其中一些工作是处理行内的单个单词时，通常可以使用 istringstream。
+
+假定有一个文件，列出了一些人和他们的电话号码，有些人只有一个电话号，有些人有多个电话号，如下所示：
+
+````latex
+Jason 123456 125874
+Jack 145225 85545 1211212 1212121
+Tim 44545
+````
+
+我们可以定义一个简单的类来描述输入数据：
+
+<a id="code-snippet--inline-PersonInfo"></a>
+````cpp
+//  成员默认公有
+struct PersonInfo {
+  std::string name;
+  std::vector<std::string> phones;
+};
+````
+
+我们需要读取数据文件,并创建一个 PersonInfo 的 vector。vector 中每个元素对应文件中的一条记录。我们在一个循环中处理输入数据，每个循环需要分别提取人名和若干个电话号码。
 
 ````cpp
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <fstream>
 
+using namespace std;
+//  成员默认公有
+struct PersonInfo {
+  std::string name;
+  std::vector<std::string> phones;
+};
+int main() {
+  string line,word;             // 分别保存输入的一行和单词
+  vector<PersonInfo> people;    // 保存来自输入的所有记录
+
+  ifstream infile("personInfo.txt",std::fstream::in);
+  if(!infile.is_open()) { throw std::runtime_error("无法打开文件: personInfo.txt"); }
+  // 逐行从文件读取数据，直到遇到文件尾，或其他错误
+  while(getline(infile, line)){
+    PersonInfo info;              // 创建一个保存此记录数据的对象
+    istringstream record(line);   // 将每一行和一个流对象绑定
+    record >> info.name;          // 读取名字
+    while(record >> word){        // 读取电话号码
+      info.phones.push_back(word);
+    }
+
+    people.push_back(info);
+  }
+
+  for(auto &p: people){
+    cout << p.name << " ";
+    for(auto &x:p.phones){
+      cout << x << " ";
+    }
+    cout << endl;
+  }
+  return 0;
+}
+````
+
+````text
+Jason 123456 125874
+Jack 145225 85545 1211212 1212121
+Tim 44545
 ````
