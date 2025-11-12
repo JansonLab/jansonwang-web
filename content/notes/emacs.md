@@ -9,10 +9,6 @@ draft: false
 
 查看某个快捷键的功能：按下 `C-h k` 然后输入需要查询的 `快捷键` 。
 
-sdf
-
-{{< figure src="/ox-hugo/The-Android-software-stack.png" >}}
-
 
 ## 图片类 {#图片类}
 
@@ -20,8 +16,6 @@ sdf
     ```emacs-lisp
     [[/home/ubuntu/Pictures/The-Android-software-stack.png]]
     ```
-
-<!--listend-->
 
 -   怎么显示图片： `C-c C-x C-v`
 

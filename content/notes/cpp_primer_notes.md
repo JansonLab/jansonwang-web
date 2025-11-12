@@ -1436,6 +1436,8 @@ cout << nounitbuf;  // 回到正常的缓冲方式
     | strm.str();      | 返回 strm 所保存的 string 的拷贝                           |
     | strm.str(s);     | 将 string s 拷贝到 strm 中。返回 void                      |
 
+[sstream继承链](https://yuanbao.tencent.com/bot/app/share/chat/DoxqHSnts9nJ)
+
 
 #### 8.3.1 使用 istringstream {#8-dot-3-dot-1-使用-istringstream}
 
@@ -1509,3 +1511,760 @@ Jason 123456 125874
 Jack 145225 85545 1211212 1212121
 Tim 44545
 ````
+
+
+#### 8.3.1 节练习 {#8-dot-3-dot-1-节练习}
+
+<!--list-separator-->
+
+-  练习 8.9
+
+    ````cpp
+    #include <iostream>
+    #include <istream>
+    #include <sstream>
+
+    using namespace std;
+
+    std::istream &read(std::istream &cin) {
+      char c;
+      while (cin.get(c)) {
+        std::cout << c;
+      }
+
+      cin.clear();
+      return cin;
+    }
+
+    int main() {
+      istringstream istrm("Hello Jason");
+      read(istrm);
+      return 0;
+    }
+    ````
+
+    ````text
+    Hello Jason
+    ````
+
+<!--list-separator-->
+
+-  练习 8.10
+
+    假设有以下文件 8.10.txt
+
+    ````latex
+    hello world ni
+    jason Jason
+    jack Jack
+    ````
+
+    ````cpp
+    #include <fstream>
+    #include <iostream>
+    #include <sstream>
+    #include <stdexcept>
+    #include <string>
+    #include <vector>
+
+    using namespace std;
+
+    int main() {
+      ifstream infile("8.10.txt", ifstream::in);
+      if (!infile.is_open()) {
+        throw runtime_error("文件打开失败：8.10.txt");
+      }
+
+      vector<string> vec;
+      string line;
+      string word;
+      while (getline(infile, line)) {
+        vec.push_back(line);
+      }
+
+      for (auto &x : vec) {
+        istringstream istrm(x);
+        while (istrm >> word) {
+          cout << word << " ";
+        }
+      }
+      return 0;
+    }
+    ````
+
+<!--list-separator-->
+
+-  练习 8.11
+
+    ````cpp
+    #include <iostream>
+    #include <sstream>
+    #include <string>
+    #include <vector>
+    #include <fstream>
+
+    using namespace std;
+    //  成员默认公有
+    struct PersonInfo {
+      std::string name;
+      std::vector<std::string> phones;
+    };
+    int main() {
+      string line,word;             // 分别保存输入的一行和单词
+      vector<PersonInfo> people;    // 保存来自输入的所有记录
+
+      ifstream infile("personInfo.txt",std::fstream::in);
+      if(!infile.is_open()) { throw std::runtime_error("无法打开文件: personInfo.txt"); }
+      // 逐行从文件读取数据，直到遇到文件尾，或其他错误
+
+      istringstream record;
+      while(getline(infile, line)){
+        PersonInfo info;              // 创建一个保存此记录数据的对象
+        record.str(line);             // 将每一行和一个流对象绑定
+
+        record >> info.name;          // 读取名字
+        while(record >> word){        // 读取电话号码
+          info.phones.push_back(word);
+        }
+
+        people.push_back(info);
+        record.clear();                   // 清除错误状态
+      }
+
+      for(auto &p: people){
+        cout << p.name << " ";
+        for(auto &x:p.phones){
+          cout << x << " ";
+        }
+        cout << endl;
+      }
+      return 0;
+    }
+    ````
+
+
+#### 8.3.2 使用 ostringstream {#8-dot-3-dot-2-使用-ostringstream}
+
+````cpp
+#include <sstream>
+#include <iostream>
+
+using namespace std;
+
+int main(){
+  ostringstream ostrm;
+  ostrm << "Hello World";
+  ostrm <<" Jason";
+  cout << ostrm.str() << endl;
+  return 0;
+}
+````
+
+
+## 第九章 顺序容器 {#第九章-顺序容器}
+
+
+### 9.1 顺序容器概述 {#9-dot-1-顺序容器概述}
+
+不同的容器在以下两方面的性能有折中：
+
+-   向容器添加或从容器中删除元素的代价。
+
+-   非顺序访问容器中元素的代价。
+
+| 容器         | 说明                                       |
+|------------|------------------------------------------|
+| vector       | 可变大小数组。支持快速随机访问。在尾部之外插入或删除元素可能很慢。 |
+| deque        | 双端队列。支持快速随机访问。在头部位置插入/删除速度很快 |
+| list         | 双向链表。只支持双向数据访问。在 list 中任何位置进行插入/删除操作都很快 |
+| forward_list | 单向链表。只支持单向顺序访问。在链表的任何位置进行插入/删除操作速度都很快 |
+| array        | 固定大小数组。支持快速随机访问。不能添加或删除元素 |
+| string       | 与 vector 相似的容器，但专门用于保存字符。随机访问快。在尾部插入/删除速度快 |
+
+容器选择的基本原则：
+
+-   有很多小元素且对空间占用敏感，则不应该使用 list 或 forward_list
+-   程序需要随机访问元素，应该使用 vector 或 deque
+-   程序需要在头尾插入或删除元素，但不会在中间位置插入或删除操作，则使用 deque
+-   如果程序在读取时才需要在中间插入元素，然后需要随机访问，则：
+    -   输入阶段使用 list。
+    -   输入完成后将内容拷贝到 vector 中。
+
+9.1 节练习
+
+-   练习 9.1
+    (a) 使用 list。
+    (b) 使用 deque。
+    (c) 使用 deque。
+
+
+### 9.2 容器库概览 {#9-dot-2-容器库概览}
+
+容器中几乎可以保存任何类型，但某些容器的构造函数要求保存的类型有默认构造函数。例如：
+
+````cpp
+// 假定 noDefault 是一个没有默认构造函数的类型,它的一个构造函数接受一个int和一个std::string
+noDefault init(42, "initial");     // 创建一个初始化对象
+vector<noDefault> v1(10, init);    // 正确：提供了元素初始化器。
+// 方法2：直接使用构造函数参数（C++11及以上）
+vector<noDefault> v2(3, noDefault(100, "temp"));
+
+vector<noDefault> v2(10);          // 错误：必须提供了一个元素初始化器
+````
+
+
+#### 容器操作 {#容器操作}
+
+-   类型别名
+
+    | 类型别名        | 说明                                    |
+    |-------------|---------------------------------------|
+    | iterator        | 此容器类型的迭代器类型                  |
+    | const_iterator  | 可以读取元素，但不能修改元素的迭代器类型 |
+    | size_type       | 无符号整数类型。                        |
+    | difference_type | 带符号整数类型，足够保存两个迭代器之间的距离 |
+    | value_type      | 元素类型                                |
+    | reference       | 元素的左值类型；与 value_type&amp; 含义相同 |
+    | const_reference | 元素的 const 左值类型（即 const value_type&amp;） |
+
+<!--listend-->
+
+-   构造函数
+
+    | 构造函数      | 说明                                  |
+    |-----------|-------------------------------------|
+    | C c;          | 默认构造函数，构造空容器              |
+    | C c1(c2);     | 构造C2的拷贝C1                        |
+    | C c(b,e);     | 构造 c，将迭代器b和e指定的范围内的元素拷贝到c (array 不支持) |
+    | C c{a,b,c...} | 列表初始化 c                          |
+
+    [C++ 列表初始化]({{< relref "cpp_列表初始化.md" >}})
+
+<!--listend-->
+
+-   赋值与 swap
+
+    | 表达式       | 说明                        |
+    |-----------|---------------------------|
+    | c1=c2        | 将C1中的元素替换为C2中的元素 |
+    | c1={a,b,c..} | 将c1中的元素替换为列表中的元素（不适用于array） |
+    | a.swap(b)    | 交换 a 和 b 的元素          |
+    | swap(a,b)    | 与 a.swap(b) 等价           |
+
+<!--listend-->
+
+-   大小
+
+    | 表达式       | 说明                        |
+    |-----------|---------------------------|
+    | c.size()     | c中元素的数目（不支持 forward_list） |
+    | c.max_size() | c可保存的最大元素数目       |
+    | c.empty()    | 若c中存储了元素，返回 false,否则返回 true |
+
+<!--listend-->
+
+-   添加/删除元素（不适用于array）
+
+    | 表达式           | 说明                |
+    |---------------|-------------------|
+    | c.insert(args)   | 将 args 中的元素拷贝进c |
+    | c.emplace(inits) | 使用 inits 构造c中的一个元素 |
+    | c.erase(args)    | 删除 args 指定的元素 |
+    | c.clear()        | 删除 c 中的所有元素，返回 void |
+
+<!--listend-->
+
+-   关系运算符
+
+    | 运算符                   | 说明             |
+    |-----------------------|----------------|
+    | `=, !`                   | 所有容器都支持相等（不等）运算符 |
+    | &lt;, &lt;=, &gt;, &gt;= | 关系运算符（无序关联容器不支持） |
+
+<!--listend-->
+
+-   迭代器
+
+    | 表达式               | 说明                    |
+    |-------------------|-----------------------|
+    | c.begin(), c.end()   | 返回指向 c 的首元素和尾元素之后位置的迭代器 |
+    | c.cbegin(), c.cend() | 返回 const_iterator     |
+
+<!--listend-->
+
+-   反向容器的额外成员
+
+    | 表达式                 | 说明                      |
+    |---------------------|-------------------------|
+    | reverse_iterator       | 按逆序寻址的迭代器        |
+    | const_reverse_iterator | 不能修改元素的逆序迭代器  |
+    | c.rbegin(), c.rend()   | 返回指向 c 的尾元素和首元素之前位置的迭代器 |
+    | c.crbegin(), c.crend() | 返回 const_reverse_iterator |
+
+9.2 节练习练习 9.2
+
+````cpp
+#include <list>
+#include <deque>
+std::list<std::deque<int>> l;
+````
+
+
+#### 9.2.1 迭代器 {#9-dot-2-dot-1-迭代器}
+
+一个 `迭代器范围` 由一对迭代器表示，这两个迭代器分别是代称为 begin 和 end。begin 表示首元素所在位置，end 表示容器最后一个元素之后的位置。
+
+这种元素范围被称为左闭合区间： [begin, end)
+
+-   `迭代器范围` 的构成要求（程序员维持这个约定）：
+    -   它们指向同一个容器中的元素或最后一个元素之后的位置。
+
+    -   我们可以通过反复递增 begin 来到达 end。换句话来说，end 不在 begin 之前。
+
+-   通过迭代器可以获得的信息：
+    -   如果 begin 与 end 相等，则容器为空
+
+    -   如果 begin 与 end 不等，则容器至少包含一个元素，且 begin 指向该范围中的第一个元素。
+
+    -   我们可以对 begin 递增若干次，使得 begin  == end
+
+<!--listend-->
+
+-   迭代器的一般使用
+    ````cpp
+    while(begin != end){
+      *begin == val;    // 正确：范围非空，因此 begin 指向一个元素
+      ++begin;          // 移动迭代器，获取下一个元素
+     }
+    ````
+
+
+#### 9.2.1 节练习 {#9-dot-2-dot-1-节练习}
+
+-   练习 9.3
+    参见本节内容。
+
+<!--listend-->
+
+-   练习 9.4
+    ````cpp
+    #include <iostream>
+    #include <vector>
+
+    using namespace std;
+
+    bool find_value(vector<int>::iterator begin, vector<int>::iterator end, int value){
+      while(begin!=end){
+        if(*begin == value)
+          return true;
+
+        ++begin;
+      }
+      return false;
+    }
+    int main(){
+      vector<int> vec{1,2,3,4,5,6};
+      cout << (find_value(vec.begin(), vec.end(), 2)?"true":"false") << endl;
+      return 0;
+    }
+    ````
+
+<!--listend-->
+
+-   练习 9.5
+    ````cpp
+    #include <iostream>
+    #include <vector>
+
+    using namespace std;
+
+    vector<int>::iterator find_value(vector<int>::iterator begin, vector<int>::iterator end, int value){
+      auto it = end;
+      while(begin!=end){
+        if(*begin == value)
+          return begin;
+
+        ++begin;
+      }
+      return it;
+    }
+    int main(){
+      vector<int> vec{1,2,3,4,5,6};
+
+      auto it = find_value(vec.begin(), vec.end(),5);
+      if(it!=vec.end())
+        cout<< *it << endl;
+      return 0;
+    }
+
+    ````
+
+<!--listend-->
+
+-   练习 9.6
+    当容器为空时，两个迭代器都指向尾元素之后的位置。
+
+
+#### 9.2.2 容器类型成员 {#9-dot-2-dot-2-容器类型成员}
+
+每个容器都定义了多个类型，例如：size_type, iterator 和 const_iterator。
+
+除此之外，大多数容器（std::forward_list 除外）还提供反向迭代器，对一个反向迭代器执行++操作，会得到上一个元素。
+
+除了上述两种，就剩下类型类型别名了，通过类型别名，我们可以在不了解容器中元素类型的情况下使用它。
+
+-   value_type 是元素类型别名
+
+-   reference 和 const_reference 是元素的引用别名
+
+如何使用类型别名：
+
+````cpp
+// iter 是通过 list<string>定义的一个迭代器类型：
+list<string>::iterator iter;
+
+// count 是通过 vector<int>定义的一个 difference_type 类型
+vector<int>::difference_type count;
+````
+
+9.2.2 节练习
+
+-   练习 9.7
+    迭代器类型，std::vector&lt;int&gt;::const_iterator
+
+<!--listend-->
+
+-   练习 9.8
+    读取：std::list&lt;std::string&gt;::const_iterator
+    写入：std::list&lt;std::string&gt;::iterator
+
+
+#### 9.2.3 begin 和 end 成员 {#9-dot-2-dot-3-begin-和-end-成员}
+
+begin 和 end 有多个版本：带 r 开头的版本返回反向迭代器，带 c 开头的版本返回 const 迭代器。 以 cr 开头的版本返回 const 反向迭代器。
+
+不以c开头的函数都是重载函数，每一个类别有两个实现，例如 begin 有两个版本，其它 rbegin、end 和 rend 也是一样的都有两个版本。这两个版本一个是 const 成员，返回容器的 const_iterator 类型，另一个是非常量成员，返回容器的 iterator 类型。
+
+````cpp
+#include <list>
+#include <string>
+
+using namespace std;
+
+int main(){
+  list<string> vec{"Hello","World","Jason"};
+
+  // 显式指定类型
+  list<string>::iterator it1 = vec.begin();
+  list<string>::const_iterator it2 = vec.begin();
+  //list<string>::iterator it1 = vec.cbegin(); // 类型不批评，错误
+  auto it3 = vec.cbegin();
+  return 0;
+}
+````
+
+9.2.3 节练习
+
+-   练习 9.9
+    begin 没有const 修饰，cbegin 成员函数有 const 修饰
+    ````cpp
+    iterator begin() _GLIBCXX_NOEXCEPT {
+      return iterator(this->_M_impl._M_node._M_next);
+    }
+
+    const_iterator cbegin() const noexcept {
+      return const_iterator(this->_M_impl._M_node._M_next);
+    }
+    ````
+
+
+#### 9.2.4 容器定义和初始化 {#9-dot-2-dot-4-容器定义和初始化}
+
+除 array 之外，其它容器的默认构造函数都会创建一个指定类型的空容器，且都可以接受指定容器大小和元素初始值的参数。
+
+| 容器构造方式     | 说明                                                               |
+|------------|------------------------------------------------------------------|
+| C c;             | 默认构造函数。如果 C 是一个 array，则 C 中元素按照默认方式初始化；否则 C 为空 |
+| C c1(c2)         | c1初始化为 c2 的拷贝，两者必须是相同类型，对于 array 类型，两者还必须具有相同的大小 |
+| C c{a,b,c,d};    | c 初始化为初始化列表中元素的拷贝。对于 array，列表中元素数目必须小于或等于 array 的大小，任何遗漏的元素都进行值初始化 |
+| C c = {a,b,c,d}; | 同上                                                               |
+| C c(b,e);        | c 初始化为迭代器 b 和 e 指定范围中元素的拷贝，array 不适用。       |
+| C seq(n);        | seq 包含 n 个元素，这些元素都进行了值初始化；构造函数是 explicit。只适用于顺序容器，且不能是 string。 |
+| C seq(n,t);      | seq 包含 n 个初始化为值 t 的元素。只适用于顺序容器。               |
+
+<!--list-separator-->
+
+-  将一个容器初始化为另一个容器的拷贝
+
+    将一个容器初始化为另一个容器的拷贝的方法有两种：可以直接拷贝整个容器，或者（array 除外）拷贝由一个迭代器对指定的元素范围。
+
+    当传递迭代器参数来拷贝一个范围时，不需要容器类型是相同的，容器中的元素类型也可以不同，只要能将要拷贝的元素转换为要初始化的容器的元素类型即可。
+
+    ````cpp
+    list<string> authors = {"Milton", "Shakespeare", "Austen"};
+    vector<const char*> articles = {"a","an","the"};
+
+    list<string> list2(authors);      // 正确：类型匹配
+    deque<string> authList(authors);  // 错误：容器类型不匹配
+    vector<string> words(articles);   // 错误：容器类型必须匹配
+
+    former_list<string> words (articles.begin(), articles.end());  // 正确：可以将 const char* 元素转换为 string
+
+    // 拷贝元素，直到 it 指向的位置前一个元素。
+    deque<string> authList (authors.begin(), it);
+    ````
+
+<!--list-separator-->
+
+-  列表初始化
+
+    对于除 array 之外的容器类型，初始化列表还隐含地指定了容器的大小：容器将包含与初始值一样多的元素。
+
+    ````cpp
+    #include <iostream>
+    #include <string>
+    #include <vector>
+    #include <list>
+
+    using namespace std;
+
+    int main(){
+      list<string> authors = {"Milton", "Shakespeare", "Austen"};
+      vector<const char*> articles = {"a", "an", "the"};
+      vector<const char*> articles2{"a", "an", "the"};    // 与上一行代码等价
+
+      vector<string> vec;
+      vec.push_back("H");
+      vec.push_back("H");
+      vec.push_back("H");
+      vec.push_back("H");
+      vec.push_back("H");
+
+      cout << authors.size() <<" " << endl;
+      cout << articles.size() << " " <<articles.capacity() << endl;
+      cout << articles2.size() << " " << articles2.capacity() <<endl;
+
+      cout << vec.size() << " " << vec.capacity() <<endl;
+      return 0;
+    }
+    ````
+
+    ````text
+    3
+    3 3
+    3 3
+    5 8
+    ````
+
+<!--list-separator-->
+
+-  标准库 array 具有固定大小
+
+    和内置数组一样，标准库 array 的大小也是类型的一部分。
+
+    ````cpp
+    array<int, 42> num1;
+    array<string, 10> arr;
+    ````
+
+    为了使用 array 类型，我们必须同时指定元素类型和大小：
+
+    ````cpp
+    array<int, 10>::size_type i;   // array 类型包括元素类型和大小
+    array<int>::size_type j;       // 错误：array<int>不是一个类型
+    ````
+
+    如果元素是类类型，那么该类必须有一个默认构造函数，以使值初始化能够进行。
+
+    ````cpp
+    int digs[10] = {0, 1,2,3,4,5,6,7,8,9};
+    //int cpy[10] = digs;                    // 错误：内置数组不支持拷贝和赋值
+    std::array<int, 10> digits = {0,1,2,3,4,5,6,7,8,9};
+    std::array<int, 10> copy = digits;   // 正确：只要数组类型匹配即可合法,除此之外，两者元素数量也必须一样。
+    ````
+
+    -   9.2.4 节练习
+        -   练习9.11
+            ````cpp
+            #include <iostream>
+            #include <vector>
+            #include <string>
+            using namespace std;
+
+            int main(){
+              vector<string> vec;                                     // 空容器
+              vector<string> vec2{"Hello", "World"};                  // 含有两个元素 {"Hello", "World"}
+              vector<string> vec3 = vec2;                             // 含有两个元素 {"Hello", "World"}
+              vector<string> vec4(vec2.begin(), vec2.end());          // 含有两个元素 {"Hello", "World"}
+              vector<string> vec5(100);                               // 含有100个空string
+              vector<string> vec6(100,string("Hello"));               // 含有100个"Hello"
+
+              cout << vec.size() << " " << vec.capacity() << endl;
+              cout << vec2.size() << " " << vec2.capacity() << endl;
+              cout << vec3.size() << " " << vec3.capacity() << endl;
+              cout << vec4.size() << " " << vec4.capacity() << endl;
+              cout << vec5.size() << " " << vec5.capacity() << endl;
+              cout << vec6.size() << " " << vec6.capacity() << endl;
+              return 0;
+            }
+            ````
+
+            ````text
+            0 0
+            2 2
+            2 2
+            2 2
+            100 100
+            100 100
+            ````
+
+        -   练习9.12
+            使用构造函数：容器类型和元素类型都必须一致使用迭代器范围：容器类型一致，元素类型可以不同，只需能相互转换即可。
+
+    <!--listend-->
+
+    -   练习 9.13
+        ````cpp
+        #include <iostream>
+        #include <list>
+        #include <vector>
+
+        using namespace std;
+
+        int main(){
+          list<int> num_link = {1,2,3,4,5,6};
+          vector<int> ivec = {1,2,3,4,5,6,7,8,9};
+          vector<double> dvec(num_link.begin(), num_link.end());
+          vector<double> dvec2(ivec.begin(),ivec.end());
+
+          return 0;
+        }
+        ````
+
+
+#### 9.2.5 赋值和swap {#9-dot-2-dot-5-赋值和swap}
+
+赋值运算符将其左边容器中的全部元素替换为右边容器中的元素的拷贝。
+
+````cpp
+c1 = c2;        // 将 c1 的内容替换为 c2 中元素的拷贝
+c1 = {a,b,c};   // 赋值后，c1 大小为3
+````
+
+标准库 array 类型也允许赋值，但赋值号左右两边的运算对象必须具有相同的类型：相同的类型、相同的大小
+
+````cpp
+array<int, 10> a1 = {0,1,2,3,4,5,6,7,8,9};
+array<int, 10> a2 = {0};  // 所有10个元素均为 0
+a1 = a2;   // 替换 a1 中的元素
+a2 = {0};  // 错误：不能将一个花括号列表赋予数组。
+````
+
+<!--list-separator-->
+
+-  容器赋值运算
+
+    | 表达式          | 说明                                                        |
+    |--------------|-----------------------------------------------------------|
+    | c1=c2           | 将 c1 中的元素替换为 c2 中的拷贝。c1 和 c2 必须具有相同的类型。 |
+    | c = {a,b,c...}  | 将 c1 中的元素替换为初始化列表中的拷贝（array 不适用）      |
+    | swap(c1,c2)     | 交换 c1 和 c2 中的元素。c1 和 c2 必须具有相同的类型。swap 通常比从 c2 向 c1 拷贝元素快得多 |
+    | c1.swap(c2)     | 同上                                                        |
+    | seq.assign(b,e) | 将 seq 中的元素替换为迭代器 b 和 e 所表示的范围中的元素。迭代器 b 和 e 不能指向 seq 中的元素 |
+    | seq.assign(n,t) | 将 seq 中的元素替换为 n 个值为 t 的元素。                   |
+
+    警告：赋值相关运算符会导致指向左边容器内部的迭代器、引用和指针失效。而 swap 操作不会导致它们的 迭代器、引用和指针失效（array和string除外）
+
+<!--list-separator-->
+
+-  使用 assign（仅顺序容器）
+
+    顺序容器（除了 array ）使用 assign ，我们可以从一个不同但相容的类型赋值，或者从容器的一个子序列赋值。例如：我们可以使用 assign 实现将一个vector 中的一段 char\* 值赋予一个 list 中的 string：
+
+    ````cpp
+    list<string> names;
+    vector<const char*> oldstyle;
+    names = oldstyle;  // 错误：容器类型不匹配
+
+    // 正确：可以将 const char* 转换为 string
+    names.assign(oldstyle.cbegin(), oldstyle.cend());
+    ````
+
+    assign 第二个版本接受一个整型值（数量）和一个元素值（元素类型）。
+
+    ````cpp
+    // 等价于 slist1.clear();
+    // 后跟 slist1.insert(slist1.begin(),10,"Hiya!");
+
+    list<string> slist1(1);    // 一个元素，为空string
+    slist1.assign(10,"Hiya!"); // 10个元素，每个都是 "Hiya!"
+    ````
+
+<!--list-separator-->
+
+-  使用 swap
+
+    swap 交换两个相同类型容器的内容。除了 array 外，swap 不对任何元素进行拷贝、删除或插入操作，因此可以保证在常数时间内完成。
+
+    ````cpp
+    #include <iostream>
+    #include <string>
+    #include <vector>
+
+    using namespace std;
+
+    int main() {
+      vector<string> svec1 = {"a","b", "c", "d"};
+      vector<string> svec2 = {"e", "f"};
+
+      auto it1 = svec1.begin();
+      auto it2 = svec2.begin();
+      swap(svec1, svec2);
+
+      cout << "it1 " << *it1 << endl;
+      cout << "it2 " << *it2 << endl;
+
+
+      return 0;
+    }
+    ````
+
+    -   swap 操作注意事项：
+        -   原本的迭代器、引用、指针都保持有效。
+        -   end() 迭代器也会跟随交换，需要重新获取
+        -   容量(capacity)也会交换，内存分配策略随之交换
+        -   这是一种高效的O(1)操作，只交换内部指针，不复制元素
+
+    <!--listend-->
+
+    -   9.2.5 节练习
+        -   练习 9.14
+            ````cpp
+            #include <iostream>
+            #include <list>
+            #include <string>
+            #include <vector>
+            using namespace std;
+
+            int main(){
+              list<const char*> list_str = {"Hello","World"};
+              vector<string> vec_str(list_str.cbegin(), list_str.cend());
+              return 0;
+            }
+            ````
+
+
+#### 9.2.6 容器大小操作 {#9-dot-2-dot-6-容器大小操作}
+
+除了一个例外，每个容器都有三个与大小相关的操作：
+
+-   成员函数 size：返回容器中元素的数目
+
+-   成员函数 empty：当 size 为 0 时返回 true，否则返回 false
+
+-   max_size 返回一个大于或等于该类型容器能容纳的最大元素数的值
+
+-   forward_list 支持 max_size 和 empty，但不支持 size。
+
+
+#### 9.2.7 关系运算符 {#9-dot-2-dot-7-关系运算符}

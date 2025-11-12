@@ -27,7 +27,11 @@ const defaultOptions: Options = {
 const relrefRegex = new RegExp(/\[([^\]]+)\]\(\{\{< relref "([^"]+)" >\}\}\)/, "g")
 const predefinedHeadingIdRegex = new RegExp(/(.*) {#(?:.*)}/, "g")
 const hugoShortcodeRegex = new RegExp(/{{(.*)}}/, "g")
-const figureTagRegex = new RegExp(/< ?figure src="(.*)" ?>/, "g")
+//const figureTagRegex = new RegExp(/< ?figure src="(.*)" ?>/, "g")
+const figureTagRegex = new RegExp(/< ?figure src="(.*?)" ?>/, "g");
+
+
+
 // \\\\\( -> matches \\(
 // (.+?) -> Lazy match for capturing the equation
 // \\\\\) -> matches \\)
@@ -78,13 +82,34 @@ export const OxHugoFlavouredMarkdown: QuartzTransformerPlugin<Partial<Options>> 
         })
       }
 
-      if (opts.replaceFigureWithMdImg) {
-        src = src.toString()
-        src = src.replaceAll(figureTagRegex, (_value, ...capture) => {
-          const [src] = capture
-          return `![](static/${src})`
-        })
-      }
+      // if (opts.replaceFigureWithMdImg) {
+      //   src = src.toString()
+      //   src = src.replaceAll(figureTagRegex, (_value, ...capture) => {
+      //     const [src] = capture
+      //     return `![](static/${src})`
+      //   })
+	// }
+
+	if (opts.replaceFigureWithMdImg) {
+	    src = src.toString();
+	    
+	    // 确保 figureTagRegex 已经使用非贪婪匹配 /< ?figure src="(.*?)" ?>/g
+	    src = src.replaceAll(figureTagRegex, (_value, ...capture) => {
+		const [figureSrc] = capture;
+		
+		// 检查捕获到的 src 是否以 'http' 开头（即完整的 URL，例如 http://, https://）
+		const isExternalUrl = figureSrc.startsWith('http');
+		
+		// 根据是否是外部 URL 来决定返回的 Markdown 图像标签
+		if (isExternalUrl) {
+		    // 外部 URL：直接使用 figureSrc
+		    return `![](${figureSrc})`;
+		} else {
+		    // 本地路径：添加 'static/' 前缀
+		    return `![](static/${figureSrc})`;
+		}
+	    });
+	}
 
       if (opts.replaceOrgLatex) {
         src = src.toString()
