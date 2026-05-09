@@ -1,18 +1,34 @@
-# Quartz v4
+# Janson Wang's Digital Garden 🌿
 
-> “[One] who works with the door open gets all kinds of interruptions, but [they] also occasionally gets clues as to what the world is and what might be important.” — Richard Hamming
+> “提出问题往往比解决问题更重要。” —— 爱因斯坦
 
-Quartz is a set of tools that helps you publish your [digital garden](https://jzhao.xyz/posts/networked-thought) and notes as a website for free.
-Quartz v4 features a from-the-ground rewrite focusing on end-user extensibility and ease-of-use.
+欢迎来到我的数字花园。这里（[jansonwang.com](https://jansonwang.com)）不仅是一个笔记库，更是我个人认知的**演化实验室**。
 
-🔗 Read the documentation and get started: https://quartz.jzhao.xyz/
+本站的设计哲学深受**牛顿**的结构化索引、**特斯拉**的深度模拟以及**爱因斯坦**的底层逻辑启发，旨在对抗“浅层通过”与信息茧房。
 
-[Join the Discord Community](https://discord.gg/cRFFHYye7t)
+## 🏛 知识体系架构
 
-## Sponsors
+本花园基于知识的**生命周期**而非学科进行组织：
 
-<p align="center">
-  <a href="https://github.com/sponsors/jackyzha0">
-    <img src="https://cdn.jsdelivr.net/gh/jackyzha0/jackyzha0/sponsorkit/sponsors.svg" />
-  </a>
-</p>
+- **`/seeds` (种子)**：原始灵感、网页剪藏与待验证的碎片。它们是高波动性的输入。
+- **`/sprouts` (苗圃)**：正在消化的逻辑。包含我与 AI 的博弈、电路调试过程中的质疑以及未完成的推导。
+- **`/evergreens` (常青树)**：原子化的洞察。关于计算机底层、电子工程与工业美学的核心原理。
+- **`/experiments` (实验室)**：Janson Lab 的实测记录。包括 3D 打印参数、系统延迟优化数据及硬件 DIY 日志。
+- **`/queries` (问题集)**：我的“矛盾实验室”。记录那些挑战直觉的问题，用以驱动深度思考。
+
+## 🛠 技术栈
+
+- **构建框架**: [Quartz](https://quartz.jzhao.xyz/) / [Astro](https://astro.build/)
+- **生产力工具**: [Emacs](https://www.gnu.org/software/emacs/) (Org-roam + Magit)
+- **部署环境**: Cloudflare
+- **视觉美学**: 工业极简主义 (Industrial Minimalist)
+
+## 🎯 核心原则
+
+1. **反缓存机制**: 只有经过实践（代码实现或电路焊接）的知识才值得进入花园。
+2. **第一性原理**: 剥离表象，记录事物运作的底层逻辑。
+3. **异质化碰撞**: 强行链接不同领域（如古典音乐与系统架构），打破思维定势。
+
+---
+
+*“Amicus Plato, amicus Aristotle, sed magis amica veritas. (柏拉图是我的朋友，亚里士多德是我的朋友，但真理是我更好的朋友。)” —— 艾萨克·牛顿*
