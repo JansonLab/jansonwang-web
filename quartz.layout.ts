@@ -1,6 +1,32 @@
 import { PageLayout, SharedLayout } from "./quartz/cfg"
 import * as Component from "./quartz/components"
 
+const explorerOptions: Partial<Options> = {
+  sortFn: (a, b) => {
+    const folderOrder: Record<string, number> = {
+      cs: 1,
+      ee: 2,
+      math: 3,
+      em: 4,
+      phys: 5,
+      meta: 99,
+    }
+
+    const orderA = a.isFolder ? (folderOrder[a.slugSegment] ?? 999) : 999
+    const orderB = b.isFolder ? (folderOrder[b.slugSegment] ?? 999) : 999
+
+    if (a.isFolder && !b.isFolder) return -1
+    if (!a.isFolder && b.isFolder) return 1
+
+    if (orderA !== orderB) return orderA - orderB
+
+    return a.displayName.localeCompare(b.displayName, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    })
+  },
+}
+
 // components shared across all pages
 export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
@@ -38,7 +64,7 @@ export const defaultContentPageLayout: PageLayout = {
         { Component: Component.ReaderMode() },
       ],
     }),
-    Component.Explorer(),
+    Component.Explorer(explorerOptions),
   ],
   right: [
     Component.Graph(),
@@ -62,7 +88,7 @@ export const defaultListPageLayout: PageLayout = {
         { Component: Component.Darkmode() },
       ],
     }),
-    Component.Explorer(),
+    Component.Explorer(explorerOptions),
   ],
   right: [],
 }

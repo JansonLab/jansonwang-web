@@ -9,13 +9,13 @@ import * as Plugin from "./quartz/plugins"
 const config: QuartzConfig = {
   configuration: {
     pageTitle: "Janson Lab | 简森实验室",
-    pageTitleSuffix: "",
+    pageTitleSuffix: "Exploring the Bottom of Logic & Hardware",
     enableSPA: true,
     enablePopovers: true,
     analytics: {
       provider: "plausible",
     },
-    locale: "en-US",
+    locale: "zh-CN",
     baseUrl: "wiki",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "modified",

@@ -1,7 +1,7 @@
 ---
 title: "const成员函数"
-author: ["ubuntu"]
-date: 2025-10-23T14:07:00+08:00
+author: ["Janson"]
+date: 2026-05-13T17:05:00+08:00
 draft: false
 ---
 
@@ -82,3 +82,37 @@ const 版本
 ## 总结 {#总结}
 
 > 函数名后加 `const` 表示这个函数不会修改对象状态，即不能修改非 `mutable` 成员，也不能调用非 `const` 成员函数。它使代码更安全，也能让 const 对象正常调用这个函数。
+
+
+## const成员函数与\*const {#const成员函数与-const}
+
+假设一个成员函数被声明为 const 成员函数，如果它返回 `*this` ，那 `*this` 是什么类型？
+
+```cpp
+#include <iostream>
+using namespace std;
+
+class Person {
+  string name;
+  int x, y;
+
+  Person():x(0),y(0){};
+  Person(int _x, int _y) : x(_x), y(_y) {}
+
+  Person &move(int _x, int _y) {
+    x = _x;
+    y = _y;
+    return *this;
+  }
+
+  const Person &show() const{
+    cout << x <<" " << y<<endl;
+    return *this;
+  }
+};
+
+int main() {
+  cout << "Hello world" << endl;
+  return 0;
+}
+```

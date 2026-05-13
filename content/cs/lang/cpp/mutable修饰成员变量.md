@@ -1,7 +1,7 @@
 ---
-title: "​​mutable修饰成员变量"
-author: ["ubuntu"]
-date: 2025-10-23T14:21:00+08:00
+title: "mutable修饰成员变量"
+author: ["Janson"]
+date: 2026-05-13T17:08:00+08:00
 draft: false
 ---
 
