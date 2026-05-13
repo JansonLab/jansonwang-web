@@ -32,7 +32,7 @@
   overflow-y: hidden;
 
   min-height: 1.2rem;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   &.collapsed {
     flex: 0 1 1.2rem;
     & .fold {
@@ -114,11 +114,12 @@ button.desktop-explorer {
   overflow-y: auto;
   margin-top: 0.5rem;
 
+  pointer-events: all;
+
   & ul {
     list-style: none;
     margin: 0;
     padding: 0;
-    overscroll-behavior: contain;
 
     & li > a {
       color: var(--dark);
